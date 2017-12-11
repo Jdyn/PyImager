@@ -11,6 +11,7 @@ class Main:
         self.showing_degree = False
         self.cropping = False
         self.switch = False
+        self.joining = False
         self.degree_text = IntVar()
 
         self.open_button = Button(master, text='Open Image', command=self.button_open)
@@ -23,23 +24,23 @@ class Main:
         self.master.resizable(width=False, height=False)
         self.canvas.pack(side=TOP)
 
-        self.reset_button = Button(master, text='Reset Image', command=self.reset_button)
-        self.reset_button.pack(fill=BOTH, side=BOTTOM)
+        reset_button = Button(master, text='Reset Image', command=self.reset_button)
+        reset_button.pack(fill=BOTH, side=BOTTOM)
 
-        self.crop_button = Button(master, text='Crop Image', command=self.crop_button)
-        self.crop_button.pack(fill=BOTH, side=LEFT, expand=True)
+        crop_button = Button(master, text='Crop Image', command=self.crop_button)
+        crop_button.pack(fill=BOTH, side=LEFT, expand=True)
 
-        self.rotate_button = Button(master, text='Rotate Image', command=self.rotate_button)
-        self.rotate_button.pack(fill=BOTH, side=LEFT, expand=True)
+        rotate_button = Button(master, text='Rotate Image', command=self.rotate_button)
+        rotate_button.pack(fill=BOTH, side=LEFT, expand=True)
 
-        self.convert_button1 = Button(master, text='Convert Image', command=self.convert_button, relief="raised")
-        self.convert_button1.pack(fill=BOTH, padx=1, side=LEFT, expand=True)
+        # convert_button1 = Button(master, text='Convert Image', command=self.convert_button, relief="raised")
+        # convert_button1.pack(fill=BOTH, padx=1, side=LEFT, expand=True)
 
-        self.flip_button = Button(master, text='Flip Image', command=self.nothing)
-        self.flip_button.pack(fill=BOTH, padx=1, side=LEFT, expand=True)
+        flip_button = Button(master, text='Flip Image', command=self.flip_button)
+        flip_button.pack(fill=BOTH, padx=1, side=LEFT, expand=True)
 
-        self.join_button = Button(master, text='Join Image', command=self.nothing)
-        self.join_button.pack(fill=BOTH, padx=1, side=LEFT, expand=True)
+        join_button = Button(master, text='Join Image', command=self.join_button)
+        join_button.pack(fill=BOTH, padx=1, side=LEFT, expand=True)
 
     def nothing(self):
         pass
@@ -53,7 +54,6 @@ class Main:
             self.canvas.config(width=self.image.size[0], height=self.image.size[1])
             print(self.image.format)
             print(self.image.size)
-            print(self.image.mode)
 
     def reset_button(self):
         self.canvas.delete(ALL)
@@ -84,7 +84,7 @@ class Main:
         self.showing_degree = False
 
     def crop_button(self):
-        self.x = self.y = 0
+        self.crop_x = self.crop_y = 0
         self.cropping = True
         if self.cropping is False:
             self.canvas.bind("<ButtonPress-1>", self.nothing)
@@ -92,79 +92,137 @@ class Main:
             self.canvas.bind("<ButtonRelease-1>", self.nothing)
 
         if self.cropping is True:
+            self.joining = False
             self.canvas.bind("<ButtonPress-1>", self.crop_button_press)
             self.canvas.bind("<B1-Motion>", self.crop_move_press)
             self.canvas.bind("<ButtonRelease-1>", self.crop_button_release)
 
-            self.rect = None
+            self.crop_rect = None
 
-            self.start_x = None
-            self.start_y = None
+            self.crop_start_x = None
+            self.crop_start_y = None
 
-            self.end_X = None
-            self.end_Y = None
+            self.crop_end_X = None
+            self.crop_end_Y = None
 
     def crop_button_press(self, event):
         if self.cropping is True:
-            self.start_x = self.canvas.canvasx(event.x)
-            self.start_y = self.canvas.canvasy(event.y)
+            self.crop_start_x = self.canvas.canvasx(event.x)
+            self.crop_start_y = self.canvas.canvasy(event.y)
 
-            self.rect = self.canvas.create_rectangle(self.x, self.y, 1, 1, outline='white')
+            self.crop_rect = self.canvas.create_rectangle(self.crop_x, self.crop_y, 1, 1, outline='white')
 
     def crop_move_press(self, event):
         if self.cropping is True:
-            self.curX = self.canvas.canvasx(event.x)
-            self.curY = self.canvas.canvasy(event.y)
+            self.crop_cur_X = self.canvas.canvasx(event.x)
+            self.crop_cur_Y = self.canvas.canvasy(event.y)
 
-            self.canvas.coords(self.rect, self.start_x, self.start_y, self.curX, self.curY)
+            self.canvas.coords(self.crop_rect, self.crop_start_x, self.crop_start_y, self.crop_cur_X, self.crop_cur_Y)
 
     def crop_button_release(self, event):
         if self.cropping is True:
-            self.end_X = self.canvas.canvasx(event.x)
-            self.end_Y = self.canvas.canvasy(event.y)
-            self.crop_region = (self.start_x, self.start_y, self.end_X, self.end_Y)
+            self.crop_end_X = self.canvas.canvasx(event.x)
+            self.crop_end_Y = self.canvas.canvasy(event.y)
+            self.crop_region = (self.crop_start_x, self.crop_start_y, self.crop_end_X, self.crop_end_Y)
 
             self.cropped = self.image.crop(self.crop_region)
             self.cropped_photo = ImageTk.PhotoImage(self.cropped)
             self.canvas.itemconfig(self.modded, image=self.cropped_photo)
             self.image = self.cropped
-            self.canvas.delete(self.rect)
+            self.canvas.config(width=self.image.size[0], height=self.image.size[1])
+            self.canvas.coords(self.modded, self.image.size[0] / 2, self.image.size[1] / 2)
+            print(self.image.size)
+            self.canvas.delete(self.crop_rect)
         self.cropping = False
 
-    def convert_button(self):
+    '''def convert_button(self):
 
         if self.switch is True:
             self.switch = False
-            print("False")
+            # print("False")
             self.colored = self.image.convert('RGB')
+            self.image = self.colored
             self.colored_photo = ImageTk.PhotoImage(self.colored)
             self.canvas.itemconfig(self.modded, image=self.colored_photo)
-            self.image = self.colored
+            self.image.show()
             print(self.image.mode)
             return
 
         if self.switch is False:
             self.switch = True
-            print("True")
+            # print("True")
             self.greyed = self.image.convert('L')
+            self.image = self.greyed
             self.greyed_photo = ImageTk.PhotoImage(self.greyed)
             self.canvas.itemconfig(self.modded, image=self.greyed_photo)
+            self.image.show()
             print(self.image.mode)
-            return
+            return'''
+
+    def flip_button(self):
+        self.flipped = self.image.transpose(Image.FLIP_LEFT_RIGHT)
+        self.flipped_photo = ImageTk.PhotoImage(self.flipped)
+        self.canvas.itemconfig(self.modded, image=self.flipped_photo)
+        self.image = self.flipped
 
     def save_button(self):
         self.image_save = filedialog.asksaveasfilename(defaultextension='.jpg')
-        if self.switch is True:
-            self.image = self.greyed
-            if self.image_save:
-                self.image.save(self.image_save)
-            return
-        else:
-            if self.image_save:
-                self.image.save(self.image_save)
-            return
+        # if self.switch is True:
+            # self.image = self.greyed
+        if self.image_save:
+            self.image.save(self.image_save)
+        # else:
+            # if self.image_save:
+            # self.image.save(self.image_save)
 
+    def join_button(self):
+        self.join_x = self.join_y = 0
+        self.joining = True
+        if self.joining is False:
+            self.canvas.bind("<ButtonPress-1>", self.nothing)
+            self.canvas.bind("<B1-Motion>", self.nothing)
+            self.canvas.bind("<ButtonRelease-1>", self.nothing)
 
+        if self.joining is True:
+            self.cropping = False
+            self.canvas.bind("<ButtonPress-1>", self.join_button_press)
+            self.canvas.bind("<B1-Motion>", self.join_move_press)
+            self.canvas.bind("<ButtonRelease-1>", self.join_button_release)
+
+            self.filePath2 = filedialog.askopenfilename()
+            self.image2 = Image.open(self.filePath2)
+            self.photo2 = ImageTk.PhotoImage(self.image2)
+            # self.join_rect = None
+
+            self.join_start_x = None
+            self.join_start_y = None
+
+            self.join_end_X = None
+            self.join_end_Y = None
+
+    def join_button_press(self, event):
+        if self.joining is True:
+            self.join_start_x = self.canvas.canvasx(event.x)
+            self.join_start_y = self.canvas.canvasy(event.y)
+
+            self.modded2 = self.canvas.create_image(self.join_start_x, self.join_start_y, image=self.photo2)
+            # self.join_rect = self.canvas.create_rectangle(self.join_x, self.join_y, 1, 1, outline='white')
+
+    def join_move_press(self, event):
+        if self.joining is True:
+            self.join_cur_X = int(self.canvas.canvasx(event.x))
+            self.join_cur_Y = int(self.canvas.canvasy(event.y))
+
+            self.canvas.coords(self.modded2, self.join_cur_X, self.join_cur_Y)
+
+    def join_button_release(self, event):
+        if self.joining is True:
+            self.crop_end_X = int(self.canvas.canvasx(event.x))
+            self.crop_end_Y = int(self.canvas.canvasy(event.y))
+            self.position = (self.join_cur_X - (self.image2.width // 2), self.join_cur_Y - (self.image2.height // 2))
+
+            self.image_copy = self.image.paste(self.image2, self.position)
+            self.image.show()
 root = Tk()
 m = Main(root)
 
