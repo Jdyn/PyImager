@@ -33,8 +33,8 @@ class Main:
         rotate_button = Button(master, text='Rotate Image', command=self.rotate_button)
         rotate_button.pack(fill=BOTH, side=LEFT, expand=True)
 
-        # convert_button1 = Button(master, text='Convert Image', command=self.convert_button, relief="raised")
-        # convert_button1.pack(fill=BOTH, padx=1, side=LEFT, expand=True)
+        convert_button1 = Button(master, text='Convert Image', command=self.convert_button, relief="raised")
+        convert_button1.pack(fill=BOTH, padx=1, side=LEFT, expand=True)
 
         flip_button = Button(master, text='Flip Image', command=self.flip_button)
         flip_button.pack(fill=BOTH, padx=1, side=LEFT, expand=True)
@@ -135,29 +135,38 @@ class Main:
             self.canvas.delete(self.crop_rect)
         self.cropping = False
 
-    '''def convert_button(self):
+    def convert_button(self):
 
         if self.switch is True:
-            self.switch = False
-            # print("False")
-            self.colored = self.image.convert('RGB')
-            self.image = self.colored
-            self.colored_photo = ImageTk.PhotoImage(self.colored)
-            self.canvas.itemconfig(self.modded, image=self.colored_photo)
-            self.image.show()
-            print(self.image.mode)
+
+            self.colored_image()
+
             return
 
         if self.switch is False:
-            self.switch = True
-            # print("True")
-            self.greyed = self.image.convert('L')
-            self.image = self.greyed
-            self.greyed_photo = ImageTk.PhotoImage(self.greyed)
-            self.canvas.itemconfig(self.modded, image=self.greyed_photo)
-            self.image.show()
+            
+            self.greyed_image()
+
+            return
+
+    def colored_image(self):
+
+        if self.switch is True:
+            self.switch = False
+            print("False")
+            self.colored = self.image.convert('RGB')
+            self.colored_photo = ImageTk.PhotoImage(self.colored)
+            self.canvas.itemconfig(self.modded, image=self.colored_photo)
             print(self.image.mode)
-            return'''
+
+    def greyed_image(self):
+        self.switch = True
+        print("True")
+        self.greyed = self.image.convert('L')
+        self.greyed_photo = ImageTk.PhotoImage(self.greyed)
+        self.canvas.itemconfig(self.modded, image=self.greyed_photo)
+        print(self.image.mode)
+
 
     def flip_button(self):
         self.flipped = self.image.transpose(Image.FLIP_LEFT_RIGHT)
@@ -167,13 +176,16 @@ class Main:
 
     def save_button(self):
         self.image_save = filedialog.asksaveasfilename(defaultextension='.jpg')
-        # if self.switch is True:
-            # self.image = self.greyed
-        if self.image_save:
-            self.image.save(self.image_save)
-        # else:
-            # if self.image_save:
-            # self.image.save(self.image_save)
+
+        if self.switch is True:
+            self.image = self.greyed
+            if self.image_save:
+                self.image.save(self.image_save)
+            return
+        if self.switch is False:
+            if self.image_save:
+                self.image.save(self.image_save)
+            return
 
     def join_button(self):
         self.join_x = self.join_y = 0
