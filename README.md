@@ -1,5 +1,5 @@
 # PyImager
-1.4.7 - PLTW Image Artist Final 
+1.4.7 - PLTW | Image Editing Tool | 2017 |
 
 *Only critically tested with the image inside of the folder.*
 
